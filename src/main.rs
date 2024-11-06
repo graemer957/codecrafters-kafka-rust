@@ -1,7 +1,7 @@
 use bytes::{BufMut, BytesMut};
 use std::{
     io::{Read, Write},
-    net::TcpListener,
+    net::{Shutdown, TcpListener},
 };
 
 fn main() {
@@ -22,6 +22,7 @@ fn main() {
                 message.put(&request[8..]);
 
                 let _ = stream.write(&message[..]);
+                let _ = stream.shutdown(Shutdown::Both);
             }
             Err(e) => println!("error: {e}"),
         }

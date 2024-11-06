@@ -23,9 +23,7 @@ fn main() {
 
                 let _ = stream.write(&message[..]);
             }
-            Err(e) => {
-                println!("error: {}", e);
-            }
+            Err(e) => println!("error: {e}"),
         }
     }
 }

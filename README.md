@@ -33,3 +33,20 @@ Note: This section is for stages 2 and beyond.
    the first time you run it. Subsequent runs will be fast.
 1. Commit your changes and run `git push origin master` to submit your solution
    to CodeCrafters. Test output will be streamed to your terminal.
+
+# Section Notes
+
+## Send Correlation ID (NV3)
+
+* [Kafka wire protocol](https://kafka.apache.org/protocol.html)
+* Kafka header versions: [KIP-482](https://cwiki.apache.org/confluence/display/KAFKA/KIP-482%3A+The+Kafka+Protocol+should+Support+Optional+Tagged+Fields)
+    - [SO Answer](https://stackoverflow.com/a/71853003)
+* Validate locally using:
+    `echo -n "Placeholder request" | nc -v localhost 9092 | hexdump -C`
+
+## Parse CorrelationID (WA6)
+
+* [Protocol Primitive Types](https://kafka.apache.org/protocol.html#protocol_types)
+* Validate locally using:
+    `echo -n "00000023001200046f7fc66100096b61666b612d636c69000a6b61666b612d636c6904302e3100" | xxd -r -p | nc localhost 9092 | hexdump -C`
+* I needed to use `shutdown` on the `stream`, otherwise the CI tests failed and would like to dig further into this

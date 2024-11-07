@@ -50,3 +50,9 @@ Note: This section is for stages 2 and beyond.
 * Validate locally using:
     `echo -n "00000023001200046f7fc66100096b61666b612d636c69000a6b61666b612d636c6904302e3100" | xxd -r -p | nc localhost 9092 | hexdump -C`
 * I needed to use `shutdown` on the `stream`, otherwise the CI tests failed and would like to dig further into this
+
+## Parse API Version (NC5)
+
+* Validate locally using:
+    `echo -n "00000023001200046f7fc66100096b61666b612d636c69000a6b61666b612d636c6904302e3100" | xxd -r -p | nc localhost 9092 | hexdump -C`
+* Refactored work done to date to make use of `Bytes`

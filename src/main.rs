@@ -4,8 +4,12 @@ use std::{
     net::TcpListener,
 };
 
+#[repr(i16)]
+enum ErrorCode {
+    UnsupportedVersion = 35,
+}
+
 const API_VERSIONS_API: i16 = 18;
-const UNSUPPORTED_VERSION: i16 = 35;
 const VERSIONS_API_MAX_VERSION: i16 = 4;
 
 fn main() {
@@ -33,11 +37,15 @@ fn main() {
                 message.put_i32(message_size);
                 message.put_i32(correlation_id);
 
-                if request_api_key == API_VERSIONS_API
-                    && request_api_version > VERSIONS_API_MAX_VERSION
-                {
-                    message.put_i16(UNSUPPORTED_VERSION);
-                }
+                #[allow(clippy::single_match)]
+                match request_api_key {
+                    API_VERSIONS_API => {
+                        if !(0..=VERSIONS_API_MAX_VERSION).contains(&request_api_version) {
+                            message.put_i16(ErrorCode::UnsupportedVersion as i16);
+                        }
+                    }
+                    _ => {}
+                };
 
                 let _ = stream.write_all(&message[..]);
             }

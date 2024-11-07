@@ -1,3 +1,4 @@
+use anyhow::Result;
 use bytes::{Buf, BufMut, Bytes};
 use std::{
     io::{Read, Write},
@@ -12,15 +13,15 @@ enum ErrorCode {
 const API_VERSIONS_API: i16 = 18;
 const VERSIONS_API_MAX_VERSION: i16 = 4;
 
-fn main() {
-    let listener = TcpListener::bind("127.0.0.1:9092").unwrap();
+fn main() -> Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:9092")?;
 
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
                 println!("accepted new connection");
                 let mut buffer = [0; 1024];
-                let _ = stream.read(&mut buffer);
+                let _ = stream.read(&mut buffer)?;
 
                 let mut request = Bytes::from(Vec::from(buffer));
                 request.get_i32(); // message_size
@@ -47,9 +48,11 @@ fn main() {
                     _ => {}
                 };
 
-                let _ = stream.write_all(&message[..]);
+                stream.write_all(&message[..])?;
             }
             Err(e) => println!("error: {e}"),
         }
     }
+
+    Ok(())
 }

@@ -1,7 +1,7 @@
 use bytes::{Buf, BufMut, Bytes};
 use std::{
     io::{Read, Write},
-    net::{Shutdown, TcpListener},
+    net::TcpListener,
 };
 
 const API_VERSIONS_API: i16 = 18;
@@ -39,8 +39,7 @@ fn main() {
                     message.put_i16(UNSUPPORTED_VERSION);
                 }
 
-                let _ = stream.write(&message[..]);
-                let _ = stream.shutdown(Shutdown::Both);
+                let _ = stream.write_all(&message[..]);
             }
             Err(e) => println!("error: {e}"),
         }

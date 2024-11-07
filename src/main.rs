@@ -1,9 +1,17 @@
 use anyhow::Result;
-use bytes::{Buf, BufMut, Bytes};
+use bytes::{Buf, BufMut, BytesMut};
 use std::{
     io::{Read, Write},
     net::TcpListener,
 };
+
+#[derive(Debug)]
+struct RequestHeader {
+    _message_size: i32,
+    request_api_key: i16,
+    request_api_version: i16,
+    correlation_id: i32,
+}
 
 #[repr(i16)]
 enum ErrorCode {
@@ -20,35 +28,34 @@ fn main() -> Result<()> {
         match stream {
             Ok(mut stream) => {
                 println!("accepted new connection");
-                let mut buffer = [0; 1024];
+                let mut buffer = BytesMut::zeroed(1024);
                 let _ = stream.read(&mut buffer)?;
 
-                let mut request = Bytes::from(Vec::from(buffer));
-                request.get_i32(); // message_size
-                let request_api_key = request.get_i16();
-                let request_api_version = request.get_i16();
-                let correlation_id = request.get_i32();
+                let request_header = RequestHeader {
+                    _message_size: buffer.get_i32(),
+                    request_api_key: buffer.get_i16(),
+                    request_api_version: buffer.get_i16(),
+                    correlation_id: buffer.get_i32(),
+                };
+                dbg!(&request_header);
 
-                println!("request_api_key: {request_api_key}");
-                println!("request_api_version: {request_api_version}");
-                println!("correlation_id: {correlation_id}");
-
-                let message_size: i32 = 0;
-                let mut message = vec![];
-                message.put_i32(message_size);
-                message.put_i32(correlation_id);
+                buffer.clear();
+                buffer.put_i32(0); // TODO: Not currently calculating `message_size`
+                buffer.put_i32(request_header.correlation_id);
 
                 #[allow(clippy::single_match)]
-                match request_api_key {
+                match request_header.request_api_key {
                     API_VERSIONS_API => {
-                        if !(0..=VERSIONS_API_MAX_VERSION).contains(&request_api_version) {
-                            message.put_i16(ErrorCode::UnsupportedVersion as i16);
+                        if !(0..=VERSIONS_API_MAX_VERSION)
+                            .contains(&request_header.request_api_version)
+                        {
+                            buffer.put_i16(ErrorCode::UnsupportedVersion as i16);
                         }
                     }
                     _ => {}
                 };
 
-                stream.write_all(&message[..])?;
+                stream.write_all(&buffer[..])?;
             }
             Err(e) => println!("error: {e}"),
         }
